@@ -15,11 +15,11 @@ const uploadFolder = path.join(__dirname, '../../uploads');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        logging.info(NAMESPACE, `Files uploaded successfully to ${uploadFolder}.`);
+        logging.info(`Files uploaded successfully to ${uploadFolder}.`, { label: NAMESPACE });
         cb(null, uploadFolder);
     },
     filename: (req, file, cb) => {
-        logging.info(NAMESPACE, `Files ${file.originalname} uploaded successfully.`);
+        logging.info(`Files ${file.originalname} uploaded successfully.`, { label: NAMESPACE });
         cb(null, file.originalname);
     }
 });
@@ -29,10 +29,10 @@ const option: multer.Options = {
     fileFilter: (req, file: Express.Multer.File, cb: FileFilterCallback) => {
         const extName = path.extname(file.originalname);
         if (extName === '.mbox') {
-            logging.info(NAMESPACE, `Files ${file.originalname} is allow to upload.`);
+            logging.info(`Files ${file.originalname} is allow to upload.`, { label: NAMESPACE });
             cb(null, true);
         } else {
-            logging.error(NAMESPACE, `Files ${file.originalname} is not allow to upload.`);
+            logging.error(`Files ${file.originalname} is not allow to upload.`, { label: NAMESPACE });
             cb(null, false);
         }
     }

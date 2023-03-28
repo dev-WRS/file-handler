@@ -1,42 +1,12 @@
-const getTimeStamp = (): string => {
-    return new Date().toISOString();
-};
+import winston from 'winston';
 
-const info = (namespace: string, message: string, object?: any) => {
-    if (object) {
-        console.log(`[${getTimeStamp()}] [INFO] [${namespace}] ${message}`, object);
-    } else {
-        console.log(`[${getTimeStamp()}] [INFO] [${namespace}] ${message}`);
-    }
-};
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.printf((info) => `${info.timestamp} - [${info.label}] - ${info.level}: ${info.message}`)
+    ),
+    transports: [new winston.transports.Console(), new winston.transports.File({ filename: 'logs/error.log', level: 'error' }), new winston.transports.File({ filename: 'logs/combined.log' })]
+});
 
-const warn = (namespace: string, message: string, object?: any) => {
-    if (object) {
-        console.warn(`[${getTimeStamp()}] [WARN] [${namespace}] ${message}`, object);
-    } else {
-        console.warn(`[${getTimeStamp()}] [WARN] [${namespace}] ${message}`);
-    }
-};
-
-const error = (namespace: string, message: string, object?: any) => {
-    if (object) {
-        console.error(`[${getTimeStamp()}] [ERROR] [${namespace}] ${message}`, object);
-    } else {
-        console.error(`[${getTimeStamp()}] [ERROR] [${namespace}] ${message}`);
-    }
-};
-
-const debug = (namespace: string, message: string, object?: any) => {
-    if (object) {
-        console.debug(`[${getTimeStamp()}] [DEBUG] [${namespace}] ${message}`, object);
-    } else {
-        console.debug(`[${getTimeStamp()}] [DEBUG] [${namespace}] ${message}`);
-    }
-};
-
-export default {
-    info,
-    warn,
-    error,
-    debug
-};
+export default logger;

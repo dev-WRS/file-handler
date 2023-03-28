@@ -1,23 +1,22 @@
 const simpleParser = require('mailparser').simpleParser;
 const Mbox = require('node-mbox');
 const emlFormat = require('eml-format');
-
+import * as _ from 'underscore';
 import fs from 'fs';
 import path from 'path';
+
 import logging from '../config/logging';
 import { EmlFile } from '../models/eml.model';
 import { AddressName, Attachments, MboxModel } from '../models/mbox.model';
-import * as _ from 'underscore';
 
 const NAMESPACE = 'Mbox File Handler Service';
 
 async function handleMboxFiles(streamedFile: fs.ReadStream, filename: string) {
-    let response = false;
     const folderPath = path.join(__dirname, '../../output', filename);
     // create folder if not exists
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
-        logging.info(NAMESPACE, `Folder created successfully on ${folderPath}.`);
+        logging.info(`Folder created successfully on ${folderPath}.`, { label: NAMESPACE });
     }
 
     // Create .eml file
@@ -32,18 +31,18 @@ async function handleMboxFiles(streamedFile: fs.ReadStream, filename: string) {
             const content = writeEmlFile(email);
             createEmlFile(folderPath, fileName, content);
 
-            logging.info(NAMESPACE, `File handled successfully on ${folderPath} with name ${fileName}.`);
-        } catch (e) {
-            logging.error(NAMESPACE, `File handled with some error.`);
+            logging.info(`File handled successfully on ${folderPath} with name ${fileName}.`, { label: NAMESPACE, message: filename });
+        } catch (e: any) {
+            logging.error(`File handled with some error.`, { label: NAMESPACE, message: e.message });
         }
     });
 
     mbox.on('error', function (err: any) {
-        logging.error(NAMESPACE, `File handled with error ${err}.`);
+        logging.error(`File handled with error ${err}.`, { label: NAMESPACE, message: err.message });
     });
 
     mbox.on('end', function () {
-        logging.info(NAMESPACE, `File handling end.`);
+        logging.info(`File handling end.`, { label: NAMESPACE });
     });
 }
 
@@ -62,9 +61,9 @@ function createEmlFile(folderPath: string, fileName: string, content: string): v
         const filePath = path.join(folderPath, `${fileName}`);
         // Create .eml file
         fs.writeFileSync(filePath, content);
-        logging.info(NAMESPACE, `File created successfully on ${folderPath} with name ${fileName}.`);
-    } catch (err) {
-        logging.error(NAMESPACE, `Failed File creation on ${folderPath} with name ${fileName}.`);
+        logging.info(`EML file created successfully on ${folderPath} with name ${fileName}.`, { label: NAMESPACE });
+    } catch (err: any) {
+        logging.error(`EML File creation failed on ${folderPath} with name ${fileName}.`, { label: NAMESPACE, message: err.message });
     }
 }
 
@@ -92,6 +91,9 @@ function writeEmlFile(email: MboxModel): string {
         html: '',
         attachments: []
     };
+    if (email.to === undefined) {
+        email.to = { value: [{ address: 'noMail@nomail.com', name: 'No Mail' }], html: '', text: '' };
+    }
     for (const key of Object.keys(email)) {
         switch (key) {
             case 'from': {
@@ -118,7 +120,7 @@ function writeEmlFile(email: MboxModel): string {
                 break;
             }
             case 'htmlDoctype': {
-                emlFile.html.concat(email.htmlDoctype);
+                emlFile.html = typeof email.html !== 'string' ? email.htmlDoctype : `${emlFile.html}\r\n${email.htmlDoctype}`;
                 break;
             }
             case 'attachments': {
@@ -133,10 +135,10 @@ function writeEmlFile(email: MboxModel): string {
 
     emlFormat.build(emlFile, (err: any, eml: any) => {
         if (err) {
-            return logging.error(NAMESPACE, `Failed eml File creation by build error ${err}.`);
+            return logging.error(`Failed eml File creation by build error ${err}.`, { label: NAMESPACE, message: err.message });
         }
         result = eml;
-        logging.info(NAMESPACE, `Eml File created successfully.`);
+        logging.info(`Eml File created successfully.`, { label: NAMESPACE });
     });
 
     return result;

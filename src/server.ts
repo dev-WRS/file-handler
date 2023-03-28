@@ -1,20 +1,22 @@
 import http from 'http';
 import express from 'express';
 import bodyParser from 'body-parser';
+
 import logging from './config/logging';
 import config from './config/config';
 import sampleRoute from './routes/sample.route';
 import mboxFilesHandlerRoute from './routes/mboxFilesHandler.route';
 
 const NAMESPACE = 'Server';
+
 const router = express();
 
 /** Logging the request */
 router.use((req, res, next) => {
-    logging.info(NAMESPACE, `METHOD - [${req.method}], URL - [${req.url}], IP - [${req.socket.remoteAddress}]`);
+    logging.info(`METHOD - [${req.method}], URL - [${req.url}], IP - [${req.socket.remoteAddress}]`, { label: NAMESPACE });
 
     res.on('finish', () => {
-        logging.info(NAMESPACE, `METHOD - [${req.method}], URL - [${req.url}], IP - [${req.socket.remoteAddress}], STATUS - [${res.statusCode}]`);
+        logging.info(`METHOD - [${req.method}], URL - [${req.url}], IP - [${req.socket.remoteAddress}], STATUS - [${res.statusCode}]`, { label: NAMESPACE });
     });
 
     next();
@@ -43,7 +45,9 @@ router.use('/mbox', mboxFilesHandlerRoute);
 
 /**Error Handling */
 router.use((req, res, next) => {
-    const error = new Error('router not found');
+    const error = new Error('Router not found');
+
+    logging.error('Router not found.', { label: NAMESPACE, message: error.message });
 
     return res.status(404).json({
         message: error.message
@@ -52,4 +56,4 @@ router.use((req, res, next) => {
 
 /** Create the server */
 const httpServer = http.createServer(router);
-httpServer.listen(config.server.port, () => logging.info(NAMESPACE, `Server running on ${config.server.hostname}:${config.server.port}`));
+httpServer.listen(config.server.port, () => logging.info(`Server running on ${config.server.hostname}:${config.server.port}`, { label: NAMESPACE }));
