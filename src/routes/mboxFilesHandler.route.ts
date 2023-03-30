@@ -2,6 +2,7 @@ import express from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import logging from '../config/logging';
+import fs from 'fs';
 
 import mboxFilesHandlerController from '../controllers/mboxFilesHandler.controller';
 
@@ -11,7 +12,18 @@ const NAMESPACE = 'Mbox File Handler Route';
 router.get('/ping', mboxFilesHandlerController.mboxHealthCheck);
 
 /** Upload mbox files */
+
 const uploadFolder = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadFolder)) {
+    fs.mkdirSync(uploadFolder);
+    logging.info(`Folder upload created successfully on.`);
+}
+
+const outputFolder = path.join(__dirname, '../../output');
+if (!fs.existsSync(outputFolder)) {
+    fs.mkdirSync(outputFolder);
+    logging.info(`Folder output created successfully on.`);
+}
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {

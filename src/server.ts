@@ -56,4 +56,6 @@ router.use((req, res, next) => {
 
 /** Create the server */
 const httpServer = http.createServer(router);
-httpServer.listen(config.server.port, () => logging.info(`Server running on ${config.server.hostname}:${config.server.port}`, { label: NAMESPACE }));
+httpServer.listen(config.server.port, () => {
+    logging.info(`Server running on ${config.server.hostname}:${config.server.port}`, { label: NAMESPACE });
+});

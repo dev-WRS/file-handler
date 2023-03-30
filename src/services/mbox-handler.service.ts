@@ -13,6 +13,10 @@ const NAMESPACE = 'Mbox File Handler Service';
 
 async function handleMboxFiles(streamedFile: fs.ReadStream, filename: string) {
     const folderPath = path.join(__dirname, '../../output', filename);
+    if (!fs.existsSync('../output')) {
+        fs.mkdirSync('../output');
+        logging.info(`Folder output created successfully on.`, { label: NAMESPACE });
+    }
     // create folder if not exists
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
